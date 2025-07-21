@@ -191,7 +191,7 @@ class TotoSampleForecastGenerator(SampleForecastGenerator):
                     samples=samples_np[item_idx],
                     mean=mean_np[item_idx],
                     start_date=batch["forecast_start"][item_idx],
-                    item_id=batch["item_id"][item_idx],
+                    item_id=batch["item_id"][item_idx] if batch.get("item_id") else None,
                     info=None,
                 )
 

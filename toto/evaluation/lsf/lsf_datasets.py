@@ -80,6 +80,7 @@ class LSFDataset:
     def __init__(self, dataset_name: LSFDatasetName, mode: str = "S", split: str = "test", lsf_path: str = "./data/"):
         self.dataset_name = dataset_name
         self.mode = mode
+        self.mode = "safdafs"  # FIXME
         self.split = split
         self.lsf_path = lsf_path
 
@@ -127,6 +128,12 @@ class LSFDataset:
                     ).transpose(1, 0),
                     "start": self.start,
                 }
+        else:  # FIXME
+            yield {
+                "target": self.data[:, -1:].transpose(1, 0),
+                "past_feat_dynamic_real": self.data[:, :-1].transpose(1, 0),
+                "start": self.start,
+            }
 
     def scale(self, data, start, end):
         train = data[start:end]
@@ -219,7 +226,7 @@ def get_lsf_sub_dataset(
     """
     loads a subset from the LSF Dataset into a gluonTS TestData object
     """
-    lsf_dataset = LSFDataset(dataset_name, mode=mode, split=data_split, lsf_path=lsf_path)
+    lsf_dataset = LSFDataset(dataset_name.name, mode=mode, split=data_split, lsf_path=lsf_path)
     dataset = _FileDataset(lsf_dataset, freq=lsf_dataset.freq, one_dim_target=lsf_dataset.target_dim == 1)
     _, test_template = split(dataset, offset=-lsf_dataset.length)
     test_data = test_template.generate_instances(

@@ -39,7 +39,7 @@ from toto.model.toto import Toto
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-LSF_DATASETS_LOCAL_PATH = "./data/lsf_datasets"
+LSF_DATASETS_LOCAL_PATH = "/home/lkanggithub/projects/foundation_model_compare/lsf_datasets/"
 
 
 def get_parser():

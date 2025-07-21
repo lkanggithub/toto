@@ -22,6 +22,7 @@ from toto.model.toto import Toto
 POINT_FORECAST_METRICS = [
     gluon_metrics.MAE("0.5"),
     gluon_metrics.MSE("0.5"),
+    gluon_metrics.MAPE("0.5"),
 ]
 
 
