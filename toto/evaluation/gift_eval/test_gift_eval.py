@@ -595,73 +595,78 @@ def evaluate_tasks(tasks: List[EvalTask]) -> pd.DataFrame:
     return pd.concat(results, ignore_index=True)
 
 
-# Inference parameters
-num_samples = 256
-use_kv_cache = True
-seed = 42
-evaluation_target = "test"
-pad_short_series = False
-dataset_groups = "short"
+def run_eval():
+    # Inference parameters
+    num_samples = 256
+    use_kv_cache = True
+    seed = 42
+    evaluation_target = "test"
+    pad_short_series = False
+    dataset_groups = "short"
 
-print(f"Evaluating GiftEval Benchmark")
+    print(f"Evaluating GiftEval Benchmark")
 
-# Load dataset properties
-dataset_properties_map = json.load(open(DATASET_PROPERTIES_PATH, "r"))
-# Get datasets based on selected group
-if dataset_groups == "short":
-    all_datasets = SHORT_DATASETS.split()
-    terms = ["short"]
-elif dataset_groups == "med-long":
-    all_datasets = MED_LONG_DATASETS.split()
-    terms = ["medium", "long"]
-else:  # "all"
-    all_datasets = list(set(SHORT_DATASETS.split() + MED_LONG_DATASETS.split()))
-    terms = ["short", "medium", "long"]
+    # Load dataset properties
+    dataset_properties_map = json.load(open(DATASET_PROPERTIES_PATH, "r"))
+    # Get datasets based on selected group
+    if dataset_groups == "short":
+        all_datasets = SHORT_DATASETS.split()
+        terms = ["short"]
+    elif dataset_groups == "med-long":
+        all_datasets = MED_LONG_DATASETS.split()
+        terms = ["medium", "long"]
+    else:  # "all"
+        all_datasets = list(set(SHORT_DATASETS.split() + MED_LONG_DATASETS.split()))
+        terms = ["short", "medium", "long"]
 
-med_long_datasets = MED_LONG_DATASETS.split()
+    med_long_datasets = MED_LONG_DATASETS.split()
 
-# Create all tasks as a flat list
-all_tasks = []
-for dataset_name in all_datasets:
-    # Extract the dataset key and frequency
-    if "/" in dataset_name:
-        ds_key = dataset_name.split("/")[0]
-        ds_freq = dataset_name.split("/")[1]
-        ds_key = ds_key.lower()
-        ds_key = PRETTY_DATASET_NAMES.get(ds_key, ds_key)
-    else:
-        ds_key = dataset_name.lower()
-        ds_key = PRETTY_DATASET_NAMES.get(ds_key, ds_key)
-        ds_freq = dataset_properties_map[ds_key]["frequency"]
+    # Create all tasks as a flat list
+    all_tasks = []
+    for dataset_name in all_datasets:
+        # Extract the dataset key and frequency
+        if "/" in dataset_name:
+            ds_key = dataset_name.split("/")[0]
+            ds_freq = dataset_name.split("/")[1]
+            ds_key = ds_key.lower()
+            ds_key = PRETTY_DATASET_NAMES.get(ds_key, ds_key)
+        else:
+            ds_key = dataset_name.lower()
+            ds_key = PRETTY_DATASET_NAMES.get(ds_key, ds_key)
+            ds_freq = dataset_properties_map[ds_key]["frequency"]
 
-    for term in terms:
-        # Skip medium and long terms for datasets not in med_long_datasets
-        if (
-            term == "medium" or term == "long"
-        ) and dataset_name not in med_long_datasets:
-            continue
+        for term in terms:
+            # Skip medium and long terms for datasets not in med_long_datasets
+            if (
+                    term == "medium" or term == "long"
+            ) and dataset_name not in med_long_datasets:
+                continue
 
-        task = EvalTask(
-            dataset_name=dataset_name,
-            term=term,
-            checkpoint_path="Toto-Open-Base-1.0",
-            num_samples=num_samples,
-            use_kv_cache=use_kv_cache,
-            seed=seed,
-            dataset_properties_map=dataset_properties_map,
-            dataset_key=ds_key,
-            dataset_frequency=ds_freq,
-            evaluation_target=evaluation_target,
-            pad_short_series=pad_short_series,
-        )
+            task = EvalTask(
+                dataset_name=dataset_name,
+                term=term,
+                checkpoint_path="Toto-Open-Base-1.0",
+                num_samples=num_samples,
+                use_kv_cache=use_kv_cache,
+                seed=seed,
+                dataset_properties_map=dataset_properties_map,
+                dataset_key=ds_key,
+                dataset_frequency=ds_freq,
+                evaluation_target=evaluation_target,
+                pad_short_series=pad_short_series,
+            )
 
-        all_tasks.append(task)
+            all_tasks.append(task)
 
-print(f"Processing {len(all_tasks)} tasks sequentially")
+    print(f"Processing {len(all_tasks)} tasks sequentially")
 
-# Process all tasks sequentially
-results = evaluate_tasks(all_tasks)
+    # Process all tasks sequentially
+    results = evaluate_tasks(all_tasks)
 
-results_filename = "all_results_short"
+    results_filename = "all_results_short"
 
-results.to_csv(f"../../results/gift_eval/toto/{results_filename}.csv", index=False)
+    results.to_csv(f"../../results/gift_eval/toto/{results_filename}.csv", index=False)
+
+
+if __name__ == "__main__":
+    run_eval()
