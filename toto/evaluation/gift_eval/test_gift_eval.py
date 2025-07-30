@@ -405,8 +405,10 @@ def try_prediction_with_config(
     if min_context_length is None:
         min_context_length = model.model.patch_embed.stride
 
+    """
     # Ensure context_length is not smaller than the minimum
     context_length = max(context_length, min_context_length)
+    """
 
     # Use the TOTOModelPredictorWrapper
     predictor_wrapper = TOTOModelPredictorWrapper(
