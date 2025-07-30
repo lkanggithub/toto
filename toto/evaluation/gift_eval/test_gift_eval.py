@@ -10,6 +10,7 @@ import gc
 import json
 from dataclasses import dataclass
 from typing import Any, Dict, List
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -38,6 +39,15 @@ from toto.inference.gluonts_predictor import Multivariate, TotoPredictor
 from toto.model.toto import Toto
 from dataclasses import dataclass
 
+from dr_model_benchmark.common.analysis.entities import ModelScoreMetrics
+from dr_model_benchmark.common.analysis.entities import ModelTimeProfiles
+from dr_model_benchmark.common.analysis.entities import TestResultV2
+from dr_model_benchmark.common.analysis.enums import Partition
+from dr_model_benchmark.common.enums import MetricType
+from dr_model_benchmark.common.profile.entities import TimeProfile
+from dr_model_benchmark.common.profile.utils import TimeProfiler
+from dr_model_benchmark.common.profile.enums import TimeProfileType
+
 
 DATASET_PROPERTIES_PATH = "/home/lkanggithub/workspace/toto/toto/evaluation/gift_eval/dataset_properties.json"
 
@@ -50,7 +60,7 @@ PRETTY_DATASET_NAMES = {
     "car_parts_with_missing": "car_parts",
 }
 
-SHORT_DATASETS = "electricity/D electricity/W solar/10T solar/H solar/D solar/W hospital covid_deaths us_births/D us_births/M us_births/W saugeenday/D saugeenday/M saugeenday/W temperature_rain_with_missing kdd_cup_2018_with_missing/H kdd_cup_2018_with_missing/D car_parts_with_missing restaurant hierarchical_sales/D hierarchical_sales/W LOOP_SEATTLE/5T LOOP_SEATTLE/H LOOP_SEATTLE/D SZ_TAXI/15T SZ_TAXI/H M_DENSE/H M_DENSE/D ett1/15T ett1/H ett1/D ett1/W ett2/15T ett2/H ett2/D ett2/W jena_weather/10T jena_weather/H jena_weather/D bitbrains_fast_storage/5T bitbrains_fast_storage/H bitbrains_rnd/5T bitbrains_rnd/H bizitobs_application bizitobs_service bizitobs_l2c/5T bizitobs_l2c/H"
+SHORT_DATASETS = "m4_yearly m4_quarterly m4_monthly m4_weekly m4_daily m4_hourly electricity/15T electricity/H electricity/D electricity/W solar/10T solar/H solar/D solar/W hospital covid_deaths us_births/D us_births/M us_births/W saugeenday/D saugeenday/M saugeenday/W temperature_rain_with_missing kdd_cup_2018_with_missing/H kdd_cup_2018_with_missing/D car_parts_with_missing restaurant hierarchical_sales/D hierarchical_sales/W LOOP_SEATTLE/5T LOOP_SEATTLE/H LOOP_SEATTLE/D SZ_TAXI/15T SZ_TAXI/H M_DENSE/H M_DENSE/D ett1/15T ett1/H ett1/D ett1/W ett2/15T ett2/H ett2/D ett2/W jena_weather/10T jena_weather/H jena_weather/D bitbrains_fast_storage/5T bitbrains_fast_storage/H bitbrains_rnd/5T bitbrains_rnd/H bizitobs_application bizitobs_service bizitobs_l2c/5T bizitobs_l2c/H"
 # MED_LONG_DATASETS = "electricity/15T electricity/H solar/10T solar/H kdd_cup_2018_with_missing/H LOOP_SEATTLE/5T LOOP_SEATTLE/H SZ_TAXI/15T M_DENSE/H ett1/15T ett1/H ett2/15T ett2/H jena_weather/10T jena_weather/H bitbrains_fast_storage/5T bitbrains_rnd/5T bizitobs_application bizitobs_service bizitobs_l2c/5T bizitobs_l2c/H"
 MED_LONG_DATASETS = "bizitobs_l2c/H"
 
@@ -558,7 +568,7 @@ def evaluate_dataset_with_model(model, task: EvalTask) -> pd.DataFrame:
     return result_df
 
 
-def evaluate_tasks(tasks: List[EvalTask]) -> pd.DataFrame:
+def evaluate_tasks(tasks: List[EvalTask], test_results: List[TestResultV2]) -> pd.DataFrame:
     """
     Evaluate a batch of tasks sequentially, possibly from different checkpoints.
     This function will load models on-demand.
@@ -573,10 +583,39 @@ def evaluate_tasks(tasks: List[EvalTask]) -> pd.DataFrame:
     # Process all tasks for this checkpoint
     for task in tasks:
         print(f"Evaluating {task.dataset_name}, term={task.term}")
-        result_df = evaluate_dataset_with_model(model, task)
+        partition = Partition.TEST
+        test_time_profile = TimeProfile(partition.name)
+        with TimeProfiler(test_time_profile):
+            result_df = evaluate_dataset_with_model(model, task)
 
         if result_df is not None:
             results.append(result_df)
+
+            model_score_metrics = [
+                ModelScoreMetrics(
+                    MetricType.MAE,
+                    partition=partition,
+                    score=float(result_df.loc[0, "eval_metrics/MAE[0.5]"]),
+                ),
+                ModelScoreMetrics(
+                    MetricType.MAPE,
+                    partition=partition,
+                    score=float(result_df.loc[0, "eval_metrics/MAPE[0.5]"]),
+                ),
+            ]
+            model_time_profiles = [
+                ModelTimeProfiles(
+                    TimeProfileType.TOTAL_CLOCK_TIME,
+                    partition,
+                    test_time_profile.time_ellipse,
+                )
+            ]
+            test_result = TestResultV2(
+                dataset_name=task.dataset_name,
+                model_score_metrics=model_score_metrics,
+                model_time_profiles=model_time_profiles,
+            )
+            test_results.append(test_result)
 
     # Cleanup model and memory only after completing all tasks
     del model
@@ -656,9 +695,11 @@ def run_eval():
     print(f"Processing {len(all_tasks)} tasks sequentially")
 
     # Process all tasks sequentially
-    results = evaluate_tasks(all_tasks)
+    test_results: List[TestResultV2] = []
+    results = evaluate_tasks(all_tasks, test_results)
 
-    results.to_csv("/home/lkanggithub/projects/foundation_model_compare/results_toto_gift_eval.csv", index=False)
+    results.to_csv("/home/lkanggithub/projects/foundation_model_compare/results_gift_eval_short_term_toto_gpu.csv", index=False)
+    TestResultV2.to_csv(test_results, Path("/home/lkanggithub/projects/foundation_model_compare/results_gift_eval_short_term_toto_gpu_with_time.csv"))
 
 
 if __name__ == "__main__":
