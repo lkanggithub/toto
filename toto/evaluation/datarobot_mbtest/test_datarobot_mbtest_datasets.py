@@ -500,12 +500,12 @@ def run_eval():
     # Process all tasks sequentially
     test_results: List[TestResultV2] = []
     datarobot_mbtest_yaml_path = Path(
-        "/home/lyndon.kang/projects/foundation_model_compare/mbtest/"
+        "/home/lkanggithub/projects/foundation_model_compare/"
         "custom_data_no_pii_ts_with_lab_machine_path.yaml"
     )
     time_series_frequence = "D"
     test_datasets = TestDataset.create_from_datarobot_mbtest_yaml(
-        datarobot_mbtest_yaml_path, time_series_frequence,
+        datarobot_mbtest_yaml_path, time_series_frequence, True,
     )
     results = evaluate_datasets(test_datasets, test_results)
 
