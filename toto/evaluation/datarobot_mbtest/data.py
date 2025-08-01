@@ -78,7 +78,7 @@ def create_one_univariate_dataset(
         FieldName.START: np.array([pd.to_datetime(dataframe[datetime_column_name]).iloc[0]]),
         FieldName.TARGET: np.array([dataframe[variate_column_name].values]),
     }
-    return Dataset.from_dict(data_dict)
+    return Dataset.from_dict(data_dict).with_format("numpy")
 
 
 def create_one_multivariate_dataset(
