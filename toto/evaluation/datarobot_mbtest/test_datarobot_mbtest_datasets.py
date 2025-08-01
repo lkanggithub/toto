@@ -28,6 +28,7 @@ from gluonts.ev.metrics import (
 )
 from gluonts.model import evaluate_model
 from gluonts.time_feature import get_seasonality
+from gluonts.dataset.common import _FileDataset
 
 from toto.evaluation.datarobot_mbtest.data import TestDataset
 
