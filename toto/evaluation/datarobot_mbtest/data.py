@@ -12,6 +12,7 @@ from gluonts.dataset.split import TestData, TrainingDataset, split
 from gluonts.itertools import Map
 from gluonts.transform import Transformation
 from gluonts.dataset.field_names import FieldName
+from gluonts.dataset.common import _FileDataset
 import pyarrow.compute as pc
 from toolz import compose
 import pandas as pd
