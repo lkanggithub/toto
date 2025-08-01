@@ -96,8 +96,16 @@ def create_one_multivariate_dataset(
         FieldName.START: np.array([pd.to_datetime(dataframe[datetime_column_name]).iloc[0]]),
         FieldName.TARGET: dataframe[target_column_name].values.reshape(-1, 1).transpose(1, 0),
     }
-    numeric_cols = [col for col in covariate_column_names if col.dtype.kind in "iufcb"]
-    non_numeric_cols = [col for col in covariate_column_names if col.dtype.kind not in "iufcb"]
+    numeric_cols = [
+        col
+        for col in covariate_column_names
+        if dataframe[col].dtype.kind in "iufcb"
+    ]
+    non_numeric_cols = [
+        col
+        for col in covariate_column_names
+        if dataframe[col].dtype.kind not in "iufcb"
+    ]
     if numeric_cols:
         data_dict.update(
             {FieldName.PAST_FEAT_DYNAMIC_REAL: dataframe[numeric_cols].values.transpose(1, 0)}
