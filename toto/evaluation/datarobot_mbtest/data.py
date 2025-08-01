@@ -57,7 +57,9 @@ def sort_dataframe_by_datetime_column(
     datatime_column = pd.to_datetime(data_frame[datetime_column_name])
     sort_column_name = f"{datetime_column_name}_for_sort"
     data_frame[sort_column_name] = datatime_column
-    return data_frame.sort_values(by=[sort_column_name])
+    sorted_data_frame = data_frame.sort_values(by=[sort_column_name])
+    sorted_data_frame.drop([sort_column_name], axis=1, inplace=True)
+    return sorted_data_frame
 
 
 def get_hf_dataset_target_dimension(hf_dataset: Dataset) -> int:
