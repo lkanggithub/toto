@@ -12,7 +12,6 @@ from gluonts.dataset.split import TestData, TrainingDataset, split
 from gluonts.itertools import Map
 from gluonts.transform import Transformation
 from gluonts.dataset.field_names import FieldName
-from gluonts.dataset.common import _FileDataset
 import pyarrow.compute as pc
 from toolz import compose
 import pandas as pd
@@ -118,10 +117,7 @@ def create_one_multivariate_dataset(
             {FieldName.PAST_FEAT_DYNAMIC_CAT: dataframe[non_numeric_cols].values.transpose(1, 0)}
         )
 
-    return _FileDataset(
-        data_dict, freq=self.time_series_frequency, one_dim_target=self.target_dim == 1,
-    ).with_format("numpy")
-    # return Dataset.from_dict(data_dict).with_format("numpy")
+    return Dataset.from_dict(data_dict).with_format("numpy")
 
 
 def create_one_multiseries_dataset(
@@ -253,7 +249,7 @@ class TestDataset:
                 full_dataframe, datetime_partition_column_name,
             )
             dataset_name = get_dataset_name(Path(mbtest_config.train_dataset_path))
-            if create_univariate_dataset and dataset_name.find("univariate") != -1:  # FIXME
+            if create_univariate_dataset:
                 hf_dataset = create_one_univariate_dataset(
                     dataframe=full_dataframe,
                     datetime_column_name=datetime_partition_column_name,
