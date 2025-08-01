@@ -76,7 +76,8 @@ def create_one_univariate_dataset(
 
     data_dict = {
         FieldName.START: np.array([pd.to_datetime(dataframe[datetime_column_name]).iloc[0]]),
-        FieldName.TARGET: np.array([dataframe[variate_column_name].values]),
+        # FieldName.TARGET: np.array([dataframe[variate_column_name].values]),
+        FieldName.TARGET: dataframe[variate_column_name].values.reshape(-1, 1).transpose(1, 0),
     }
     return Dataset.from_dict(data_dict).with_format("numpy")
 
@@ -84,9 +85,19 @@ def create_one_univariate_dataset(
 def create_one_multivariate_dataset(
     dataframe: pd.DataFrame,
     datetime_column_name: str,
+    target_column_name: str,
 ) -> Dataset:
-    # TODO
-    pass
+    covariate_column_names = [
+        column
+        for column in dataframe.columns
+        if column not in {datetime_column_name, target_column_name}
+    ]
+    data_dict = {
+        FieldName.START: np.array([pd.to_datetime(dataframe[datetime_column_name]).iloc[0]]),
+        FieldName.TARGET: dataframe[target_column_name].values.reshape(-1, 1).transpose(1, 0),
+        FieldName.PAST_FEAT_DYNAMIC_REAL: dataframe[covariate_column_names].values.transpose(1, 0),
+    }
+    return Dataset.from_dict(data_dict).with_format("numpy")
 
 
 def create_one_multiseries_dataset(
@@ -217,14 +228,18 @@ class TestDataset:
             full_dataframe = sort_dataframe_by_datetime_column(
                 full_dataframe, datetime_partition_column_name,
             )
-            if create_univariate_dataset:
+            if create_univariate_dataset and mbtest_config.find("univariate") != -1:  # FIXME
                 hf_dataset = create_one_univariate_dataset(
                     dataframe=full_dataframe,
                     datetime_column_name=datetime_partition_column_name,
                     variate_column_name=mbtest_config.target,
                 )
             else:
-                hf_dataset = Dataset.from_pandas(full_dataframe)  # FIXME
+                hf_dataset = create_one_multivariate_dataset(
+                    dataframe=full_dataframe,
+                    datetime_column_name=datetime_partition_column_name,
+                    target_column_name=mbtest_config.target,
+                )
             test_datasets.append(
                 cls(
                     name=get_dataset_name(Path(mbtest_config.train_dataset_path)),
