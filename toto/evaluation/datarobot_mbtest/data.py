@@ -95,8 +95,17 @@ def create_one_multivariate_dataset(
     data_dict = {
         FieldName.START: np.array([pd.to_datetime(dataframe[datetime_column_name]).iloc[0]]),
         FieldName.TARGET: dataframe[target_column_name].values.reshape(-1, 1).transpose(1, 0),
-        FieldName.PAST_FEAT_DYNAMIC_REAL: dataframe[covariate_column_names].values.transpose(1, 0),
     }
+    numeric_cols = [col for col in covariate_column_names if col.dtype.kind in "iufcb"]
+    non_numeric_cols = [col for col in covariate_column_names if col.dtype.kind not in "iufcb"]
+    if numeric_cols:
+        data_dict.update(
+            {FieldName.PAST_FEAT_DYNAMIC_REAL: dataframe[numeric_cols].values.transpose(1, 0)}
+        )
+    if non_numeric_cols:
+        data_dict.update(
+            {FieldName.PAST_FEAT_DYNAMIC_CAT: dataframe[non_numeric_cols].values.transpose(1, 0)}
+        )
     return Dataset.from_dict(data_dict).with_format("numpy")
 
 
