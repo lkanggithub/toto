@@ -116,7 +116,11 @@ def create_one_multivariate_dataset(
         data_dict.update(
             {FieldName.PAST_FEAT_DYNAMIC_CAT: dataframe[non_numeric_cols].values.transpose(1, 0)}
         )
-    return Dataset.from_dict(data_dict).with_format("numpy")
+
+    return _FileDataset(
+        data_dict, freq=self.time_series_frequency, one_dim_target=self.target_dim == 1,
+    ).with_format("numpy")
+    # return Dataset.from_dict(data_dict).with_format("numpy")
 
 
 def create_one_multiseries_dataset(
