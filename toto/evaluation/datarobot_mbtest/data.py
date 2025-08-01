@@ -228,7 +228,8 @@ class TestDataset:
             full_dataframe = sort_dataframe_by_datetime_column(
                 full_dataframe, datetime_partition_column_name,
             )
-            if create_univariate_dataset and mbtest_config.find("univariate") != -1:  # FIXME
+            dataset_name = get_dataset_name(Path(mbtest_config.train_dataset_path))
+            if create_univariate_dataset and dataset_name.find("univariate") != -1:  # FIXME
                 hf_dataset = create_one_univariate_dataset(
                     dataframe=full_dataframe,
                     datetime_column_name=datetime_partition_column_name,
@@ -242,7 +243,7 @@ class TestDataset:
                 )
             test_datasets.append(
                 cls(
-                    name=get_dataset_name(Path(mbtest_config.train_dataset_path)),
+                    name=dataset_name,
                     hf_dataset=hf_dataset,
                     gluonts_dataset=create_one_gluonts_dataset_from_hf_dataset(
                         hf_dataset, time_series_frequency,
