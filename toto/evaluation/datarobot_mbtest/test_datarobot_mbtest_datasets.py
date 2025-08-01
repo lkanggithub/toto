@@ -382,7 +382,7 @@ def evaluate_dataset_with_model(model, dataset: TestDataset) -> pd.DataFrame:
         mode=Multivariate(batch_size=suggested_batch_size),
         num_samples=NUM_SAMPLES,
         test_data=eval_data,
-        freq=dataset.time_series_frequence,
+        freq=dataset.time_series_frequency,
         use_kv_cache=USE_KV_CACHE,
         metrics=metrics,
         min_context_length=min_context_length,

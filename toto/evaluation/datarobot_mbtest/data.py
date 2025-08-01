@@ -120,8 +120,9 @@ class TestDataset:
     hf_dataset: Dataset
     gluonts_dataset: object
     prediction_length: int
-    test_split: float
-    time_series_frequence: str
+    test_data_length: int
+    train_end_date: str
+    time_series_frequency: str
 
     @cached_property
     def target_dim(self) -> int:
@@ -148,7 +149,7 @@ class TestDataset:
 
     @cached_property
     def windows(self) -> int:
-        w = math.ceil(self.test_split * self._min_series_length / self.prediction_length)
+        w = math.floor(self.test_data_length / self.prediction_length)
         return min(max(1, w), MAX_WINDOW)
 
     @cached_property
@@ -173,24 +174,23 @@ class TestDataset:
             lengths = pc.list_value_length(self.hf_dataset.data.column(FieldName.TARGET))
         return sum(lengths.to_numpy())
 
+    @cached_property
+    def split_point(self) -> pd.Period:
+        return pd.Period(self.train_end_date, freq=self.time_series_frequency)
+
     @property
     def training_dataset(self) -> TrainingDataset:
         training_dataset, _ = split(
-            self.gluonts_dataset, offset=-self.prediction_length * (self.windows + 1)
+            self.gluonts_dataset,
+            date=self.split_point,
         )
         return training_dataset
 
     @property
-    def validation_dataset(self) -> TrainingDataset:
-        validation_dataset, _ = split(
-            self.gluonts_dataset, offset=-self.prediction_length * self.windows
-        )
-        return validation_dataset
-
-    @property
     def test_data(self) -> TestData:
         _, test_template = split(
-            self.gluonts_dataset, offset=-self.prediction_length * self.windows
+            self.gluonts_dataset,
+            date=self.split_point,
         )
         test_data = test_template.generate_instances(
             prediction_length=self.prediction_length,
@@ -232,9 +232,10 @@ class TestDataset:
                     gluonts_dataset=create_one_gluonts_dataset_from_hf_dataset(
                         hf_dataset, time_series_frequency,
                     ),
-                    prediction_length=time_series_config.forecast_window_end - time_series_config.forecast_window_start,
-                    test_split = len(test_dataframe) / len(full_dataframe),
-                    time_series_frequence=time_series_frequency
+                    prediction_length=time_series_config.forecast_window_end - time_series_config.forecast_window_start + 1,
+                    test_data_length=len(test_dataframe),
+                    train_end_date=train_dataframe[datetime_partition_column_name].values[-1],
+                    time_series_frequency=time_series_frequency,
                 )
             )
 

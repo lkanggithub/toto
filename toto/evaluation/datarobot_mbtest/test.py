@@ -4,6 +4,9 @@ from toto.evaluation.datarobot_mbtest.data import TestDataset
 
 
 def test():
+    from pathlib import Path
+    from toto.evaluation.datarobot_mbtest.data import TestDataset
+
     datasets = TestDataset.create_from_datarobot_mbtest_yaml(
         datarobot_mbtest_yaml_path=Path(
             "/home/lyndon.kang/projects/foundation_model_compare/mbtest/"
