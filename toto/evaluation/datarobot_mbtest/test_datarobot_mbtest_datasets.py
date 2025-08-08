@@ -507,9 +507,8 @@ def run_eval():
     test_datasets = TestDataset.create_from_datarobot_mbtest_yaml(
         datarobot_mbtest_yaml_path, time_series_frequence, True,
     )
-    results = evaluate_datasets(test_datasets, test_results)
+    evaluate_datasets(test_datasets, test_results)
 
-    results.to_csv("/home/lkanggithub/projects/foundation_model_compare/results_datarobot_mbtest_with_toto_gpu.csv", index=False)
     TestResultV2.to_csv(test_results, Path("/home/lkanggithub/projects/foundation_model_compare/results_datarobot_mbtest_with_toto_gpu_with_time.csv"))
 
 
