@@ -210,6 +210,11 @@ class TestDataset:
         return pd.Period(self.train_end_date, freq=self.time_series_frequency)
 
     @property
+    def num_of_forecast_points(self) -> int:
+        test_labels_list = [test_labels for _, test_labels in self.test_data]
+        return sum([len(test_labels) for test_labels in test_labels_list])
+
+    @property
     def training_dataset(self) -> TrainingDataset:
         training_dataset, _ = split(
             self.gluonts_dataset,

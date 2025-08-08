@@ -467,7 +467,7 @@ def evaluate_datasets(datasets: List[TestDataset], test_results: List[TestResult
                 ModelTimeProfiles(
                     TimeProfileType.TOTAL_CLOCK_TIME,
                     partition,
-                    test_time_profile.time_ellipse,
+                    Seconds(test_time_profile.time_ellipse.to_float()/dataset.num_of_forecast_points),
                 )
             ]
             test_result = TestResultV2(
