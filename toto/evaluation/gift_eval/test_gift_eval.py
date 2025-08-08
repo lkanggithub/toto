@@ -615,7 +615,7 @@ def evaluate_tasks(tasks: List[EvalTask], test_results: List[TestResultV2]) -> p
                     TimeProfileType.TOTAL_CLOCK_TIME,
                     partition,
                     Seconds(
-                        test_time_profile.time_ellipse.to_float() / dataset.num_of_forecast_points
+                        test_time_profile.time_ellipse.to_float() / result_df["num_of_forecast_points"]
                     ),
                 )
             ]
