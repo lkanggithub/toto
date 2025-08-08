@@ -44,6 +44,7 @@ from dr_model_benchmark.common.analysis.entities import ModelTimeProfiles
 from dr_model_benchmark.common.analysis.entities import TestResultV2
 from dr_model_benchmark.common.analysis.enums import Partition
 from dr_model_benchmark.common.enums import MetricType
+from dr_model_benchmark.common.profile.entities import Seconds
 from dr_model_benchmark.common.profile.entities import TimeProfile
 from dr_model_benchmark.common.profile.utils import TimeProfiler
 from dr_model_benchmark.common.profile.enums import TimeProfileType
@@ -463,6 +464,8 @@ def evaluate_dataset_with_model(model, task: EvalTask) -> pd.DataFrame:
         to_univariate=False,
         storage_env_var="GIFT_EVAL",
     )
+    test_input_labels = [test_input_labels for _, test_input_labels in dataset.test_data]
+    num_of_forecast_points = sum(len(labels) for labels in test_input_labels)
 
     # Get min context length from model
     min_context_length = model.model.patch_embed.stride
@@ -538,6 +541,7 @@ def evaluate_dataset_with_model(model, task: EvalTask) -> pd.DataFrame:
                 "num_variates": [
                     task.dataset_properties_map[task.dataset_key]["num_variates"]
                 ],
+                "num_of_forecast_points": num_of_forecast_points,
             }
         )
 
@@ -563,6 +567,7 @@ def evaluate_dataset_with_model(model, task: EvalTask) -> pd.DataFrame:
             "num_variates": [
                 task.dataset_properties_map[task.dataset_key]["num_variates"]
             ],
+            "num_of_forecast_points": num_of_forecast_points,
         }
     )
 
@@ -609,7 +614,9 @@ def evaluate_tasks(tasks: List[EvalTask], test_results: List[TestResultV2]) -> p
                 ModelTimeProfiles(
                     TimeProfileType.TOTAL_CLOCK_TIME,
                     partition,
-                    test_time_profile.time_ellipse,
+                    Seconds(
+                        test_time_profile.time_ellipse.to_float() / dataset.num_of_forecast_points
+                    ),
                 )
             ]
             test_result = TestResultV2(
