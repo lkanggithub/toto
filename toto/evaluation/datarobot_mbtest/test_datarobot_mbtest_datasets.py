@@ -39,6 +39,7 @@ from dr_model_benchmark.common.analysis.entities import ModelTimeProfiles
 from dr_model_benchmark.common.analysis.entities import TestResultV2
 from dr_model_benchmark.common.analysis.enums import Partition
 from dr_model_benchmark.common.enums import MetricType
+from dr_model_benchmark.common.profile.entities import Seconds
 from dr_model_benchmark.common.profile.entities import TimeProfile
 from dr_model_benchmark.common.profile.utils import TimeProfiler
 from dr_model_benchmark.common.profile.enums import TimeProfileType
