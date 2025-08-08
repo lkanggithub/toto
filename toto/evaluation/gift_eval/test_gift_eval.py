@@ -705,10 +705,9 @@ def run_eval():
 
     # Process all tasks sequentially
     test_results: List[TestResultV2] = []
-    results = evaluate_tasks(all_tasks, test_results)
+    evaluate_tasks(all_tasks, test_results)
 
-    results.to_csv("/home/lkanggithub/projects/foundation_model_compare/results_gift_eval_short_term_toto_gpu.csv", index=False)
-    TestResultV2.to_csv(test_results, Path("/home/lkanggithub/projects/foundation_model_compare/results_gift_eval_short_term_toto_gpu_with_time.csv"))
+    TestResultV2.to_csv(test_results, Path("/home/lkanggithub/projects/foundation_model_compare/results_gift_eval_short_term_toto_gpu_with_unit_time.csv"))
 
 
 if __name__ == "__main__":
