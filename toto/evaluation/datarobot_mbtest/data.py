@@ -212,7 +212,7 @@ class TestDataset:
     @property
     def num_of_forecast_points(self) -> int:
         test_labels_list = [test_labels for _, test_labels in self.test_data]
-        return sum([len(test_labels) for test_labels in test_labels_list])
+        return sum([len(test_labels["target"]) for test_labels in test_labels_list])
 
     @property
     def training_dataset(self) -> TrainingDataset:

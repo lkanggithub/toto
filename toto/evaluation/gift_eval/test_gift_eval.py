@@ -464,8 +464,8 @@ def evaluate_dataset_with_model(model, task: EvalTask) -> pd.DataFrame:
         to_univariate=False,
         storage_env_var="GIFT_EVAL",
     )
-    test_input_labels = [test_input_labels for _, test_input_labels in dataset.test_data]
-    num_of_forecast_points = sum(len(labels) for labels in test_input_labels)
+    test_labels_list = [test_labels for _, test_labels in dataset.test_data]
+    num_of_forecast_points = sum([len(test_labels["target"]) for test_labels in test_labels_list])
 
     # Get min context length from model
     min_context_length = model.model.patch_embed.stride
